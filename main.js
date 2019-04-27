@@ -5,7 +5,7 @@ function caculate(postfix, dataReady, dataNeedCaculate, prop) {
     var resultStack = [];
     let error = null;
 
-    if (postfix === null || postfix === ''||postfix===undefined) {
+    if (postfix === null || postfix === '' || postfix === undefined) {
 
         return null
     }
@@ -43,7 +43,7 @@ function caculate(postfix, dataReady, dataNeedCaculate, prop) {
                 if (checkExp(postfix[i], prop)) {
                     return null
                 } else {
-                    let rs = caculate(dataReady[postfix[i]], dataReady, dataNeedCaculate, prop)
+                    let rs = caculate(dataNeedCaculate[postfix[i]], dataReady, dataNeedCaculate, prop)
                     dataReady[postfix[i]] = rs
                     delete dataNeedCaculate[postfix[i]]
 

@@ -1,20 +1,18 @@
 let codeCaculate = ['+', '-', '^', '/', '*']
 
 
-function caculate(postfix, dataFormat, dataNeedCaculate, props) {
+function caculate(postfix, dataReady, dataNeedCaculate, prop, objectError) {
     var resultStack = [];
     let error = null;
 
-    if (!postfix) {
+    if (postfix === null || postfix === ''||postfix===undefined) {
 
         return null
     }
     postfix = postfix.split(" ");
 
-    let temp;
     for (var i = 0; i < postfix.length; i++) {
-        temp = postfix[i]
-        if (temp === null) {
+        if (postfix[i] === null) {
             return null
         }
         if (postfix[i].isNumeric()) {
@@ -35,17 +33,18 @@ function caculate(postfix, dataFormat, dataNeedCaculate, props) {
                 resultStack.push(Math.pow(parseInt(b), parseInt(a)));
             }
         } else {
-            // console.log('dataFormat----',postfix[i],dataFormat[postfix[i]])
-            if (dataFormat && dataFormat[postfix[i]] && dataFormat[postfix[i]].toString().isNumeric()) {
+            // console.log('dataReady----',postfix[i],dataReady[postfix[i]])
+            if (dataReady && dataReady[postfix[i]] && dataReady[postfix[i]].toString().isNumeric()) {
                 delete dataNeedCaculate[postfix[i]]
-                resultStack.push(dataFormat[postfix[i]]);
+                resultStack.push(dataReady[postfix[i]]);
                 // console.log('vc;daa',temp);
             } else {
-                if (checkExp(postfix[i], props)) {
+
+                if (checkExp(postfix[i], prop)) {
                     return null
                 } else {
-                    let rs = caculate(dataFormat[postfix[i]], dataFormat, dataNeedCaculate, props)
-                    dataFormat[postfix[i]] = rs
+                    let rs = caculate(dataReady[postfix[i]], dataReady, dataNeedCaculate, prop)
+                    dataReady[postfix[i]] = rs
                     delete dataNeedCaculate[postfix[i]]
 
                     resultStack.push(rs)
@@ -54,9 +53,7 @@ function caculate(postfix, dataFormat, dataNeedCaculate, props) {
 
         }
     }
-    if (error) {
-        return null;
-    }
+
     if (resultStack.length > 1) {
         return null;
     } else {
@@ -64,10 +61,10 @@ function caculate(postfix, dataFormat, dataNeedCaculate, props) {
         if (data === null) {
             return null
         }
-        dataFormat[props] = data;
+        dataReady[prop] = data;
 
-        delete dataNeedCaculate[props];
-        return dataFormat[props]
+        delete dataNeedCaculate[prop];
+        return dataReady[prop]
     }
 }
 
@@ -79,9 +76,7 @@ function isNumber(data) {
     return !isNaN(parseFloat(data)) && isFinite(data);
 
 }
-let vs = '5 3 6 * + 5 3 / - 7 +'
 
-// console.log(caculate(vs))
 
 function checkExp(arrayContainCell, cellName) {
     if (arrayContainCell && arrayContainCell.includes(' '))
@@ -93,35 +88,40 @@ function checkExp(arrayContainCell, cellName) {
 }
 
 function convertData(array) {
-    let data = {}
+    let dataReady = {}
+    let dataNeedCaculate = {}
     let N;
     if (!array || !Array.isArray(array))
-        return null
+        return {
+            dataReady: null
+        }
 
     let length = array.length - 1
+    // console.log('data==',array)
     if (array.length > 0) {
         N = array[0];
         console.log('N=', N)
         for (var i = 1; i < length; i = i + 2) {
             arrayCell.push(array[i])
-            if (array[i + 1] && array[i + 1].toString().isNumeric())
+            if (array[i + 1] && !array[i + 1].toString().isNumeric())
                 dataNeedCaculate[array[i]] = array[i + 1]
 
-            data[array[i]] = array[i + 1];
+            else {
+                dataReady[array[i]] = array[i + 1];
+            }
 
         }
 
     }
-    return data;
+    return {
+        dataReady,
+        dataNeedCaculate
+    }
 }
 let arrayCell = [];
 
-let dataFormat = {};
-let dataNeedCaculate = {};
-
-
-
-//data input 
+// let dataReady = {};
+// let dataNeedCaculate = {};
 let dataExel = [
     6,
     'A1',
@@ -133,45 +133,45 @@ let dataExel = [
     'A3',
     2,
     'B2',
-    1,
+    'C1',
     'C1',
     'B2 A1 6 * + 5 3 / - 7 +'
 ];
 
+let {
+    dataReady,
+    dataNeedCaculate
+} = convertData(dataExel, arrayCell)
+if (dataReady) {
+    function main(dataReady, dataNeedCaculate) {
 
 
-function main(dataFormat, dataNeedCaculate) {
+        for (var prop in dataNeedCaculate) {
+            if (dataNeedCaculate[prop] && !dataNeedCaculate[prop].toString().isNumeric()) {
+                let value = caculate(dataNeedCaculate[prop], dataReady, dataNeedCaculate, prop);
 
-
-    for (var props in dataNeedCaculate) {
-        if (dataNeedCaculate[props] && !dataNeedCaculate[props].toString().isNumeric()) {
-            let value = caculate(dataNeedCaculate[props], dataFormat, dataNeedCaculate, props);
-
-            if (value == null) {
-                console.log('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
-                return false;
+                if (value === null) {
+                    console.log('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
+                    return false;
+                }
             }
         }
+        return true
+
     }
-    return true
 
-}
 
-// console.log('dataFormat',dataFormat,dataNeedCaculate)
-// console.log('dataFormat=',dataFormat)
-// console.log('dataNeedCaculate=',dataNeedCaculate)
-dataFormat = convertData(dataExel, arrayCell)
-if (dataFormat) {
-    let result = main(dataFormat, dataNeedCaculate);
+    let result = main(dataReady, dataNeedCaculate);
     if (result) {
         console.log('kết quả thuật toán tính toán là ')
         arrayCell.sort();
         arrayCell.forEach(cell => {
-            console.log(cell, dataFormat[cell])
+            console.log(cell, dataReady[cell])
         })
     } else {
         alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
     }
 } else {
     alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
+
 }

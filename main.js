@@ -1,7 +1,8 @@
 let codeCaculate = ['+', '-', '^', '/', '*']
 
 
-function caculate(postfix, dataReady, dataNeedCaculate, prop) {
+
+function caculate(postfix, dataReady, dataNeedCaculate, prop, flashDataNeedCaculate) {
     var resultStack = [];
     let error = null;
 
@@ -9,6 +10,8 @@ function caculate(postfix, dataReady, dataNeedCaculate, prop) {
 
         return null
     }
+    if (postfix.isNumeric())
+        return postfix;
     postfix = postfix.split(" ");
 
     for (var i = 0; i < postfix.length; i++) {
@@ -33,18 +36,24 @@ function caculate(postfix, dataReady, dataNeedCaculate, prop) {
                 resultStack.push(Math.pow(parseInt(b), parseInt(a)));
             }
         } else {
-            // console.log('dataReady----',postfix[i],dataReady[postfix[i]])
+
             if (dataReady && dataReady[postfix[i]] && dataReady[postfix[i]].toString().isNumeric()) {
                 delete dataNeedCaculate[postfix[i]]
                 resultStack.push(dataReady[postfix[i]]);
-                // console.log('vc;daa',temp);
             } else {
 
-                if (checkExp(postfix[i], prop)) {
-                    return null
+
+                if (flashDataNeedCaculate[postfix[i]] > 1 && !dataReady[postfix[i]]) {
+                    return null;
                 } else {
-                    let rs = caculate(dataNeedCaculate[postfix[i]], dataReady, dataNeedCaculate, prop)
+                    flashDataNeedCaculate[postfix[i]] = flashDataNeedCaculate[postfix[i]] ? flashDataNeedCaculate[postfix[i]] + 1 : 1;
+                    flashDataNeedCaculate[prop] = flashDataNeedCaculate[prop] = flashDataNeedCaculate[prop] ? flashDataNeedCaculate[prop] + 1 : 1;
+                    let rs = caculate(dataNeedCaculate[postfix[i]], dataReady, dataNeedCaculate, prop, flashDataNeedCaculate)
+                    if (rs === null) {
+                        return null
+                    }
                     dataReady[postfix[i]] = rs
+                    delete flashDataNeedCaculate[postfix[i]]
                     delete dataNeedCaculate[postfix[i]]
 
                     resultStack.push(rs)
@@ -72,24 +81,10 @@ String.prototype.isNumeric = function () {
     return !isNaN(parseFloat(this)) && isFinite(this);
 }
 
-function isNumber(data) {
-    return !isNaN(parseFloat(data)) && isFinite(data);
-
-}
-
-
-function checkExp(arrayContainCell, cellName) {
-    if (arrayContainCell && arrayContainCell.includes(' '))
-        return arrayContainCell.split(' ').includes(cellName)
-    else {
-        return arrayContainCell.split('').includes(cellName)
-    }
-
-}
-
 function convertData(array) {
     let dataReady = {}
     let dataNeedCaculate = {}
+    let flashDataNeedCaculate = {}
     let N;
     if (!array || !Array.isArray(array))
         return {
@@ -115,7 +110,8 @@ function convertData(array) {
     }
     return {
         dataReady,
-        dataNeedCaculate
+        dataNeedCaculate,
+        flashDataNeedCaculate
     }
 }
 let arrayCell = [];
@@ -133,24 +129,27 @@ let dataExel = [
     'A3',
     2,
     'B2',
-    'C1',
+    1,
     'C1',
     'B2 A1 6 * + 5 3 / - 7 +'
 ];
 
 let {
     dataReady,
-    dataNeedCaculate
+    dataNeedCaculate,
+    flashDataNeedCaculate
 } = convertData(dataExel, arrayCell)
+// console.log('flashDataNeedCaculate',flashDataNeedCaculate)
 if (dataReady) {
-    function main(dataReady, dataNeedCaculate) {
+    function main(dataReady, dataNeedCaculate, flashDataNeedCaculate) {
 
 
         for (var prop in dataNeedCaculate) {
             if (dataNeedCaculate[prop] && !dataNeedCaculate[prop].toString().isNumeric()) {
-                let value = caculate(dataNeedCaculate[prop], dataReady, dataNeedCaculate, prop);
+                flashDataNeedCaculate[prop] ? flashDataNeedCaculate[prop] + 1 : 1;
 
-                if (value === null) {
+                let value = caculate(dataNeedCaculate[prop], dataReady, dataNeedCaculate, prop, flashDataNeedCaculate);
+                if (value === null || value === NaN || value === undefined) {
                     console.log('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
                     return false;
                 }
@@ -161,7 +160,8 @@ if (dataReady) {
     }
 
 
-    let result = main(dataReady, dataNeedCaculate);
+    let result = main(dataReady, dataNeedCaculate, flashDataNeedCaculate);
+
     if (result) {
         console.log('kết quả thuật toán tính toán là ')
         arrayCell.sort();
@@ -169,9 +169,9 @@ if (dataReady) {
             console.log(cell, dataReady[cell])
         })
     } else {
-        alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
+        // alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
     }
 } else {
-    alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
+    // alert('Lỗi sai cú pháp tính toán hoặc sai trường khai báo')
 
 }

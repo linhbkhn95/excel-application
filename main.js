@@ -104,7 +104,7 @@ function convertData(array) {
         console.log('N=', N)
         for (var i = 1; i < length; i = i + 2) {
             arrayCell.push(array[i])
-            if (array[i + 1] && array[i + 1].isNumeric)
+            if (array[i + 1] && array[i + 1].toString().isNumeric())
                 dataNeedCaculate[array[i]] = array[i + 1]
 
             data[array[i]] = array[i + 1];

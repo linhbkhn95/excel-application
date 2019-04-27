@@ -1,7 +1,7 @@
 let codeCaculate = ['+', '-', '^', '/', '*']
 
 
-function caculate(postfix, dataReady, dataNeedCaculate, prop, objectError) {
+function caculate(postfix, dataReady, dataNeedCaculate, prop) {
     var resultStack = [];
     let error = null;
 
